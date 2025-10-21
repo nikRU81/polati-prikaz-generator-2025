@@ -91,87 +91,20 @@ def create_prikaz_document(data):
     section.different_first_page_header_footer = True
     first_page_header = section.first_page_header
     
-    # Логотип
-    if os.path.exists(LOGO_PATH):
-        para_logo = first_page_header.paragraphs[0] if first_page_header.paragraphs else first_page_header.add_paragraph()
-        para_logo.alignment = WD_ALIGN_PARAGRAPH.LEFT
-        para_logo.paragraph_format.space_after = Pt(0)
-        run_logo = para_logo.add_run()
+    # Header как картинка
+    HEADER_PATH = os.path.join(os.path.dirname(__file__), 'static', 'img', 'header.png')
+    if os.path.exists(HEADER_PATH):
+        para_header = first_page_header.paragraphs[0] if first_page_header.paragraphs else first_page_header.add_paragraph()
+        para_header.alignment = WD_ALIGN_PARAGRAPH.LEFT
+        para_header.paragraph_format.space_after = Pt(0)
+        run_header = para_header.add_run()
         try:
-            run_logo.add_picture(LOGO_PATH, height=Cm(1.2))
-        except:
-            pass  # Если ошибка с логотипом, продолжаем без него
-    
-    # Пустая строка
-    para_empty = first_page_header.add_paragraph()
-    para_empty.paragraph_format.space_after = Pt(0)
-    
-    # РЕКВИЗИТЫ - выравнивание по левому краю
-    # Строка 1
-    para1 = first_page_header.add_paragraph()
-    para1.alignment = WD_ALIGN_PARAGRAPH.LEFT
-    para1.paragraph_format.space_after = Pt(0)
-    para1.paragraph_format.line_spacing = 1.0
-    
-    run = para1.add_run('ООО «ПОЛАТИ»')
-    run.font.name = FONT_NAME
-    run.font.size = Pt(9)
-    
-    run = para1.add_run(' ' * 35)
-    
-    run = para1.add_run('Тел: 8 (800) 234-22-77')
-    run.font.name = FONT_NAME
-    run.font.size = Pt(9)
-    
-    run = para1.add_run(' ' * 20)
-    
-    run = para1.add_run('ОГРН 1145029009982')
-    run.font.name = FONT_NAME
-    run.font.size = Pt(9)
-    
-    # Строка 2
-    para2 = first_page_header.add_paragraph()
-    para2.alignment = WD_ALIGN_PARAGRAPH.LEFT
-    para2.paragraph_format.space_after = Pt(0)
-    para2.paragraph_format.line_spacing = 1.0
-    
-    run = para2.add_run('141006, г. Мытищи, Московская')
-    run.font.name = FONT_NAME
-    run.font.size = Pt(9)
-    
-    run = para2.add_run(' ' * 15)
-    
-    run = para2.add_run('info@polati.ru')
-    run.font.name = FONT_NAME
-    run.font.size = Pt(9)
-    
-    run = para2.add_run(' ' * 30)
-    
-    run = para2.add_run('ИНН 5029188770')
-    run.font.name = FONT_NAME
-    run.font.size = Pt(9)
-    
-    # Строка 3
-    para3 = first_page_header.add_paragraph()
-    para3.alignment = WD_ALIGN_PARAGRAPH.LEFT
-    para3.paragraph_format.space_after = Pt(0)
-    para3.paragraph_format.line_spacing = 1.0
-    
-    run = para3.add_run('область, Олимпийский пр-т., стр. 29а, офис 402')
-    run.font.name = FONT_NAME
-    run.font.size = Pt(9)
-    
-    run = para3.add_run(' ' * 3)
-    
-    run = para3.add_run('polati.ru')
-    run.font.name = FONT_NAME
-    run.font.size = Pt(9)
-    
-    run = para3.add_run(' ' * 35)
-    
-    run = para3.add_run('КПП 502901001')
-    run.font.name = FONT_NAME
-    run.font.size = Pt(9)
+            # Используем всю ширину страницы (примерно 16 см)
+            run_header.add_picture(HEADER_PATH, width=Cm(16))
+        except Exception as e:
+            print(f"Ошибка загрузки header: {e}")
+            # Если ошибка, просто пропускаем
+            pass
     
     # === ПРОПУСК СТРОКИ ПЕРЕД "ПРИКАЗ" ===
     doc.add_paragraph()
