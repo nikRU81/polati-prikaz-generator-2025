@@ -344,15 +344,8 @@ def create_prikaz_document(data):
     p = cells[1].paragraphs[0]
     p.alignment = WD_ALIGN_PARAGRAPH.LEFT
     
-    run = p.add_run('_________________________________________')
-    run.font.name = FONT_NAME
-    run.font.size = Pt(12)
-    
-    run = p.add_run('\u00A0')
-    run.font.name = FONT_NAME
-    run.font.size = Pt(12)
-    
-    run = p.add_run('«__»_______20__г.')
+    # Только линия, БЕЗ даты (линия длиннее чтобы компенсировать отсутствие даты)
+    run = p.add_run('_________________________________________________________')
     run.font.name = FONT_NAME
     run.font.size = Pt(12)
     
