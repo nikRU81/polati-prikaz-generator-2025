@@ -245,8 +245,8 @@ def create_prikaz_document(data):
     run.font.name = FONT_NAME
     run.font.size = Pt(12)
     
-    # === 3 ПУСТЫЕ СТРОКИ С ОДИНАРНЫМ ИНТЕРВАЛОМ ===
-    for _ in range(3):
+    # === 4 ПУСТЫЕ СТРОКИ С ОДИНАРНЫМ ИНТЕРВАЛОМ ===
+    for _ in range(4):
         p = doc.add_paragraph()
         p.paragraph_format.line_spacing = 1.0
         p.paragraph_format.space_after = Pt(0)
@@ -308,7 +308,7 @@ def create_prikaz_document(data):
     run.font.name = FONT_NAME
     run.font.size = Pt(12)
     
-    # Ячейка 2: Линия и дата
+    # Ячейка 2: Линия (БЕЗ даты - будет одинаковой длины с подписью)
     p = cells[1].paragraphs[0]
     p.alignment = WD_ALIGN_PARAGRAPH.LEFT
     
@@ -345,6 +345,14 @@ def create_prikaz_document(data):
     p.alignment = WD_ALIGN_PARAGRAPH.LEFT
     
     run = p.add_run('_________________________________________')
+    run.font.name = FONT_NAME
+    run.font.size = Pt(12)
+    
+    run = p.add_run('\u00A0')
+    run.font.name = FONT_NAME
+    run.font.size = Pt(12)
+    
+    run = p.add_run('«__»_______20__г.')
     run.font.name = FONT_NAME
     run.font.size = Pt(12)
     
