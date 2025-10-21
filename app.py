@@ -106,9 +106,10 @@ def create_prikaz_document(data):
     para_empty = first_page_header.add_paragraph()
     para_empty.paragraph_format.space_after = Pt(0)
     
-    # РЕКВИЗИТЫ - используем параграфы с форматированием
+    # РЕКВИЗИТЫ - выравнивание по левому краю
     # Строка 1
     para1 = first_page_header.add_paragraph()
+    para1.alignment = WD_ALIGN_PARAGRAPH.LEFT
     para1.paragraph_format.space_after = Pt(0)
     para1.paragraph_format.line_spacing = 1.0
     
@@ -116,7 +117,6 @@ def create_prikaz_document(data):
     run.font.name = FONT_NAME
     run.font.size = Pt(9)
     
-    # Добавляем пробелы для выравнивания (примерно 35 символов)
     run = para1.add_run(' ' * 35)
     
     run = para1.add_run('Тел: 8 (800) 234-22-77')
@@ -131,6 +131,7 @@ def create_prikaz_document(data):
     
     # Строка 2
     para2 = first_page_header.add_paragraph()
+    para2.alignment = WD_ALIGN_PARAGRAPH.LEFT
     para2.paragraph_format.space_after = Pt(0)
     para2.paragraph_format.line_spacing = 1.0
     
@@ -152,14 +153,15 @@ def create_prikaz_document(data):
     
     # Строка 3
     para3 = first_page_header.add_paragraph()
+    para3.alignment = WD_ALIGN_PARAGRAPH.LEFT
     para3.paragraph_format.space_after = Pt(0)
     para3.paragraph_format.line_spacing = 1.0
     
-    run = para3.add_run('область, Олимпийский пр-т., стр. 29а,')
+    run = para3.add_run('область, Олимпийский пр-т., стр. 29а, офис 402')
     run.font.name = FONT_NAME
     run.font.size = Pt(9)
     
-    run = para3.add_run(' ' * 10)
+    run = para3.add_run(' ' * 3)
     
     run = para3.add_run('polati.ru')
     run.font.name = FONT_NAME
@@ -170,6 +172,9 @@ def create_prikaz_document(data):
     run = para3.add_run('КПП 502901001')
     run.font.name = FONT_NAME
     run.font.size = Pt(9)
+    
+    # === ПРОПУСК СТРОКИ ПЕРЕД "ПРИКАЗ" ===
+    doc.add_paragraph()
     
     # === ЗАГОЛОВОК "ПРИКАЗ" ===
     para = doc.add_paragraph()
@@ -333,80 +338,71 @@ def create_prikaz_document(data):
     run.font.size = Pt(12)
     
     # === БЛОК ОЗНАКОМЛЕНИЯ ===
-    if 'fios' in data and data['fios'] and len(data['fios']) > 0:
-        doc.add_paragraph()
-        doc.add_paragraph()
-        
-        para = doc.add_paragraph()
-        para.alignment = WD_ALIGN_PARAGRAPH.LEFT
-        run = para.add_run('С приказом ознакомлен(-ы):')
-        run.font.name = FONT_NAME
-        run.font.size = Pt(12)
-        
-        doc.add_paragraph()  # Только одна пустая строка
-        
-        # Для каждого ФИО - таблица
-        for fio in data['fios']:
-            table_fio = create_table_without_borders(doc, 1, 2)
-            
-            table_fio.columns[0].width = Cm(2.5)
-            table_fio.columns[1].width = Cm(14.5)
-            
-            cells = table_fio.rows[0].cells
-            
-            # Ячейка 1: ФИО
-            p = cells[0].paragraphs[0]
-            p.alignment = WD_ALIGN_PARAGRAPH.LEFT
-            run = p.add_run(fio)
-            run.font.name = FONT_NAME
-            run.font.size = Pt(12)
-            
-            # Ячейка 2: Линия и дата
-            p = cells[1].paragraphs[0]
-            p.alignment = WD_ALIGN_PARAGRAPH.LEFT
-            
-            run = p.add_run('\u00A0' * 30)
-            run.font.name = FONT_NAME
-            run.font.size = Pt(12)
-            
-            run = p.add_run('_________________________________')
-            run.font.name = FONT_NAME
-            run.font.size = Pt(12)
-            
-            run = p.add_run('\u00A0')
-            run.font.name = FONT_NAME
-            run.font.size = Pt(12)
-            
-            run = p.add_run('«__»_______20__г.')
-            run.font.name = FONT_NAME
-            run.font.size = Pt(12)
-        
-        doc.add_paragraph()  # Только одна пустая строка
-        
-        # Строка "Подпись" - таблица
-        table_podpis = create_table_without_borders(doc, 1, 2)
-        
-        table_podpis.columns[0].width = Cm(2.5)
-        table_podpis.columns[1].width = Cm(14.5)
-        
-        cells = table_podpis.rows[0].cells
-        
-        p = cells[0].paragraphs[0]
-        p.alignment = WD_ALIGN_PARAGRAPH.LEFT
-        run = p.add_run('Подпись')
-        run.font.name = FONT_NAME
-        run.font.size = Pt(12)
-        
-        p = cells[1].paragraphs[0]
-        p.alignment = WD_ALIGN_PARAGRAPH.LEFT
-        
-        run = p.add_run('\u00A0' * 30)
-        run.font.name = FONT_NAME
-        run.font.size = Pt(12)
-        
-        run = p.add_run('_________________________________________')
-        run.font.name = FONT_NAME
-        run.font.size = Pt(12)
+    # Блок всегда добавляется с текстом "ФИО"
+    doc.add_paragraph()
+    doc.add_paragraph()
+    
+    para = doc.add_paragraph()
+    para.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    run = para.add_run('С приказом ознакомлен(-ы):')
+    run.font.name = FONT_NAME
+    run.font.size = Pt(12)
+    
+    doc.add_paragraph()  # Только одна пустая строка
+    
+    # Строка с ФИО
+    table_fio = create_table_without_borders(doc, 1, 2)
+    
+    table_fio.columns[0].width = Cm(2.5)
+    table_fio.columns[1].width = Cm(14.5)
+    
+    cells = table_fio.rows[0].cells
+    
+    # Ячейка 1: ФИО (всегда)
+    p = cells[0].paragraphs[0]
+    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    run = p.add_run('ФИО')
+    run.font.name = FONT_NAME
+    run.font.size = Pt(12)
+    
+    # Ячейка 2: Линия и дата (выравнивание по левому краю)
+    p = cells[1].paragraphs[0]
+    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    
+    run = p.add_run('_________________________________')
+    run.font.name = FONT_NAME
+    run.font.size = Pt(12)
+    
+    run = p.add_run('\u00A0')
+    run.font.name = FONT_NAME
+    run.font.size = Pt(12)
+    
+    run = p.add_run('«__»_______20__г.')
+    run.font.name = FONT_NAME
+    run.font.size = Pt(12)
+    
+    doc.add_paragraph()  # Только одна пустая строка
+    
+    # Строка "Подпись"
+    table_podpis = create_table_without_borders(doc, 1, 2)
+    
+    table_podpis.columns[0].width = Cm(2.5)
+    table_podpis.columns[1].width = Cm(14.5)
+    
+    cells = table_podpis.rows[0].cells
+    
+    p = cells[0].paragraphs[0]
+    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    run = p.add_run('Подпись')
+    run.font.name = FONT_NAME
+    run.font.size = Pt(12)
+    
+    p = cells[1].paragraphs[0]
+    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    
+    run = p.add_run('_________________________________________')
+    run.font.name = FONT_NAME
+    run.font.size = Pt(12)
     
     # Сохраняем в буфер
     doc_buffer = BytesIO()
