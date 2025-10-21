@@ -106,83 +106,68 @@ def create_prikaz_document(data):
     para_empty = first_page_header.add_paragraph()
     para_empty.paragraph_format.space_after = Pt(0)
     
-    # РЕКВИЗИТЫ В ТАБЛИЦЕ 3x3
-    table = create_table_without_borders(first_page_header, 3, 3)
-    
-    # Устанавливаем ширину колонок
-    table.columns[0].width = Cm(6.0)
-    table.columns[1].width = Cm(5.5)
-    table.columns[2].width = Cm(5.5)
-    
+    # РЕКВИЗИТЫ - используем параграфы с форматированием
     # Строка 1
-    cells = table.rows[0].cells
+    para1 = first_page_header.add_paragraph()
+    para1.paragraph_format.space_after = Pt(0)
+    para1.paragraph_format.line_spacing = 1.0
     
-    p = cells[0].paragraphs[0]
-    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
-    p.paragraph_format.space_after = Pt(0)
-    run = p.add_run('ООО «ПОЛАТИ»')
+    run = para1.add_run('ООО «ПОЛАТИ»')
     run.font.name = FONT_NAME
     run.font.size = Pt(9)
     
-    p = cells[1].paragraphs[0]
-    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
-    p.paragraph_format.space_after = Pt(0)
-    run = p.add_run('Тел: 8 (800) 234-22-77')
+    # Добавляем пробелы для выравнивания (примерно 35 символов)
+    run = para1.add_run(' ' * 35)
+    
+    run = para1.add_run('Тел: 8 (800) 234-22-77')
     run.font.name = FONT_NAME
     run.font.size = Pt(9)
     
-    p = cells[2].paragraphs[0]
-    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
-    p.paragraph_format.space_after = Pt(0)
-    run = p.add_run('ОГРН 1145029009982')
+    run = para1.add_run(' ' * 20)
+    
+    run = para1.add_run('ОГРН 1145029009982')
     run.font.name = FONT_NAME
     run.font.size = Pt(9)
     
     # Строка 2
-    cells = table.rows[1].cells
+    para2 = first_page_header.add_paragraph()
+    para2.paragraph_format.space_after = Pt(0)
+    para2.paragraph_format.line_spacing = 1.0
     
-    p = cells[0].paragraphs[0]
-    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
-    p.paragraph_format.space_after = Pt(0)
-    run = p.add_run('141006, г. Мытищи, Московская')
+    run = para2.add_run('141006, г. Мытищи, Московская')
     run.font.name = FONT_NAME
     run.font.size = Pt(9)
     
-    p = cells[1].paragraphs[0]
-    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
-    p.paragraph_format.space_after = Pt(0)
-    run = p.add_run('info@polati.ru')
+    run = para2.add_run(' ' * 15)
+    
+    run = para2.add_run('info@polati.ru')
     run.font.name = FONT_NAME
     run.font.size = Pt(9)
     
-    p = cells[2].paragraphs[0]
-    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
-    p.paragraph_format.space_after = Pt(0)
-    run = p.add_run('ИНН 5029188770')
+    run = para2.add_run(' ' * 30)
+    
+    run = para2.add_run('ИНН 5029188770')
     run.font.name = FONT_NAME
     run.font.size = Pt(9)
     
     # Строка 3
-    cells = table.rows[2].cells
+    para3 = first_page_header.add_paragraph()
+    para3.paragraph_format.space_after = Pt(0)
+    para3.paragraph_format.line_spacing = 1.0
     
-    p = cells[0].paragraphs[0]
-    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
-    p.paragraph_format.space_after = Pt(0)
-    run = p.add_run('область, Олимпийский пр-т., стр. 29а,')
+    run = para3.add_run('область, Олимпийский пр-т., стр. 29а,')
     run.font.name = FONT_NAME
     run.font.size = Pt(9)
     
-    p = cells[1].paragraphs[0]
-    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
-    p.paragraph_format.space_after = Pt(0)
-    run = p.add_run('polati.ru')
+    run = para3.add_run(' ' * 10)
+    
+    run = para3.add_run('polati.ru')
     run.font.name = FONT_NAME
     run.font.size = Pt(9)
     
-    p = cells[2].paragraphs[0]
-    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
-    p.paragraph_format.space_after = Pt(0)
-    run = p.add_run('КПП 502901001')
+    run = para3.add_run(' ' * 35)
+    
+    run = para3.add_run('КПП 502901001')
     run.font.name = FONT_NAME
     run.font.size = Pt(9)
     
