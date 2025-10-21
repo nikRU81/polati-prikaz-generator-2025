@@ -1,11 +1,9 @@
 let punktCounter = 0;
-let fioCounter = 0;
 
 // Инициализация при загрузке страницы
 window.onload = function() {
     addPunkt();
     addPunkt();
-    addFIO();
     
     // Устанавливаем текущую дату
     const today = new Date();
@@ -58,28 +56,6 @@ function renumberPunkts() {
             h3.textContent = `Пункт ${index + 1}`;
         }
     });
-}
-
-function addFIO() {
-    fioCounter++;
-    const container = document.getElementById('fioContainer');
-    const fioDiv = document.createElement('div');
-    fioDiv.className = 'fio-item';
-    fioDiv.id = `fio-${fioCounter}`;
-    
-    fioDiv.innerHTML = `
-        <input type="text" id="fioText-${fioCounter}" placeholder="Иванов И.И.">
-        <button type="button" onclick="removeFIO(${fioCounter})">✖</button>
-    `;
-    
-    container.appendChild(fioDiv);
-}
-
-function removeFIO(id) {
-    const element = document.getElementById(`fio-${id}`);
-    if (element) {
-        element.remove();
-    }
 }
 
 // Функция для показа уведомлений
@@ -137,16 +113,7 @@ document.getElementById('prikazForm').addEventListener('submit', async function(
             return;
         }
 
-        // Собираем ФИО
-        const fios = [];
-        const fioElements = document.querySelectorAll('.fio-item input');
-        fioElements.forEach(input => {
-            if (input.value.trim()) {
-                fios.push(input.value.trim());
-            }
-        });
-
-        // Формируем данные для отправки
+        // Формируем данные для отправки (без ФИО)
         const formData = {
             day,
             month,
@@ -154,8 +121,7 @@ document.getElementById('prikazForm').addEventListener('submit', async function(
             orderNumber,
             orderTitle,
             preamble,
-            punkts,
-            fios
+            punkts
         };
 
         // Отправляем запрос на сервер
