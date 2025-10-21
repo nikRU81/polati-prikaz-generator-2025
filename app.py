@@ -1,7 +1,9 @@
 from flask import Flask, render_template, request, send_file, jsonify
 from docx import Document
-from docx.shared import Pt, Cm, Inches
+from docx.shared import Pt, Cm, Inches, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
 from io import BytesIO
 import os
 
@@ -47,6 +49,29 @@ def generate_prikaz():
         traceback.print_exc()
         return jsonify({'error': f'Ошибка при генерации документа: {str(e)}'}), 500
 
+def create_table_without_borders(doc, rows, cols):
+    """Создание таблицы без границ"""
+    table = doc.add_table(rows=rows, cols=cols)
+    
+    # Убираем границы
+    tbl = table._element
+    tblPr = tbl.tblPr
+    if tblPr is None:
+        tblPr = OxmlElement('w:tblPr')
+        tbl.insert(0, tblPr)
+    
+    tblBorders = OxmlElement('w:tblBorders')
+    for border_name in ['top', 'left', 'bottom', 'right', 'insideH', 'insideV']:
+        border = OxmlElement(f'w:{border_name}')
+        border.set(qn('w:val'), 'none')
+        border.set(qn('w:sz'), '0')
+        border.set(qn('w:space'), '0')
+        border.set(qn('w:color'), 'auto')
+        tblBorders.append(border)
+    tblPr.append(tblBorders)
+    
+    return table
+
 def create_prikaz_document(data):
     """Создание документа приказа согласно стандарту ПОЛАТИ 2025"""
     
@@ -70,57 +95,94 @@ def create_prikaz_document(data):
     if os.path.exists(LOGO_PATH):
         para_logo = first_page_header.paragraphs[0] if first_page_header.paragraphs else first_page_header.add_paragraph()
         para_logo.alignment = WD_ALIGN_PARAGRAPH.LEFT
+        para_logo.paragraph_format.space_after = Pt(0)
         run_logo = para_logo.add_run()
         try:
             run_logo.add_picture(LOGO_PATH, height=Cm(1.2))
         except:
             pass  # Если ошибка с логотипом, продолжаем без него
     
-    first_page_header.add_paragraph()  # Пустая строка
+    # Пустая строка
+    para_empty = first_page_header.add_paragraph()
+    para_empty.paragraph_format.space_after = Pt(0)
     
-    # РЕКВИЗИТЫ (упрощенная версия через параграфы)
+    # РЕКВИЗИТЫ В ТАБЛИЦЕ 3x3
+    table = create_table_without_borders(first_page_header, 3, 3)
+    
+    # Устанавливаем ширину колонок
+    table.columns[0].width = Cm(6.0)
+    table.columns[1].width = Cm(5.5)
+    table.columns[2].width = Cm(5.5)
+    
     # Строка 1
-    para = first_page_header.add_paragraph()
-    para.paragraph_format.space_after = Pt(0)
-    run = para.add_run('ООО «ПОЛАТИ»')
+    cells = table.rows[0].cells
+    
+    p = cells[0].paragraphs[0]
+    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    p.paragraph_format.space_after = Pt(0)
+    run = p.add_run('ООО «ПОЛАТИ»')
     run.font.name = FONT_NAME
     run.font.size = Pt(9)
-    run = para.add_run('\t\t')
-    run = para.add_run('Тел: 8 (800) 234-22-77')
+    
+    p = cells[1].paragraphs[0]
+    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    p.paragraph_format.space_after = Pt(0)
+    run = p.add_run('Тел: 8 (800) 234-22-77')
     run.font.name = FONT_NAME
     run.font.size = Pt(9)
-    run = para.add_run('\t\t')
-    run = para.add_run('ОГРН 1145029009982')
+    
+    p = cells[2].paragraphs[0]
+    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    p.paragraph_format.space_after = Pt(0)
+    run = p.add_run('ОГРН 1145029009982')
     run.font.name = FONT_NAME
     run.font.size = Pt(9)
     
     # Строка 2
-    para = first_page_header.add_paragraph()
-    para.paragraph_format.space_after = Pt(0)
-    run = para.add_run('141006, г. Мытищи, Московская')
+    cells = table.rows[1].cells
+    
+    p = cells[0].paragraphs[0]
+    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    p.paragraph_format.space_after = Pt(0)
+    run = p.add_run('141006, г. Мытищи, Московская')
     run.font.name = FONT_NAME
     run.font.size = Pt(9)
-    run = para.add_run('\t')
-    run = para.add_run('info@polati.ru')
+    
+    p = cells[1].paragraphs[0]
+    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    p.paragraph_format.space_after = Pt(0)
+    run = p.add_run('info@polati.ru')
     run.font.name = FONT_NAME
     run.font.size = Pt(9)
-    run = para.add_run('\t\t')
-    run = para.add_run('ИНН 5029188770')
+    
+    p = cells[2].paragraphs[0]
+    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    p.paragraph_format.space_after = Pt(0)
+    run = p.add_run('ИНН 5029188770')
     run.font.name = FONT_NAME
     run.font.size = Pt(9)
     
     # Строка 3
-    para = first_page_header.add_paragraph()
-    para.paragraph_format.space_after = Pt(0)
-    run = para.add_run('область, Олимпийский пр-т., стр. 29а,')
+    cells = table.rows[2].cells
+    
+    p = cells[0].paragraphs[0]
+    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    p.paragraph_format.space_after = Pt(0)
+    run = p.add_run('область, Олимпийский пр-т., стр. 29а,')
     run.font.name = FONT_NAME
     run.font.size = Pt(9)
-    run = para.add_run('\t')
-    run = para.add_run('polati.ru')
+    
+    p = cells[1].paragraphs[0]
+    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    p.paragraph_format.space_after = Pt(0)
+    run = p.add_run('polati.ru')
     run.font.name = FONT_NAME
     run.font.size = Pt(9)
-    run = para.add_run('\t\t')
-    run = para.add_run('КПП 502901001')
+    
+    p = cells[2].paragraphs[0]
+    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    p.paragraph_format.space_after = Pt(0)
+    run = p.add_run('КПП 502901001')
     run.font.name = FONT_NAME
     run.font.size = Pt(9)
     
@@ -128,58 +190,76 @@ def create_prikaz_document(data):
     para = doc.add_paragraph()
     para.alignment = WD_ALIGN_PARAGRAPH.LEFT
     para.paragraph_format.space_before = Pt(12)
-    para.paragraph_format.space_after = Pt(0)
+    para.paragraph_format.space_after = Pt(12)  # Пропуск строки после ПРИКАЗ
     run = para.add_run('ПРИКАЗ')
     run.font.name = FONT_NAME
     run.font.size = Pt(12)
     run.font.bold = True
     
-    # === ДАТА И НОМЕР (в одной строке) ===
+    # === ТАБЛИЦА С ДАТОЙ И НОМЕРОМ (3 ячейки) ===
+    table_date = create_table_without_borders(doc, 1, 3)
+    
+    # Устанавливаем ширину колонок для даты
+    table_date.columns[0].width = Cm(6.0)
+    table_date.columns[1].width = Cm(5.0)
+    table_date.columns[2].width = Cm(6.0)
+    
+    cells = table_date.rows[0].cells
+    
+    # Ячейка 1: День и месяц (слева)
+    p = cells[0].paragraphs[0]
+    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    p.paragraph_format.space_after = Pt(0)
+    
+    run = p.add_run('«')
+    run.font.name = FONT_NAME
+    run.font.size = Pt(12)
+    
+    run = p.add_run(data['day'])
+    run.font.name = FONT_NAME
+    run.font.size = Pt(12)
+    run.font.underline = True
+    
+    run = p.add_run('» ')
+    run.font.name = FONT_NAME
+    run.font.size = Pt(12)
+    
+    run = p.add_run(data['month'])
+    run.font.name = FONT_NAME
+    run.font.size = Pt(12)
+    run.font.underline = True
+    
+    # Ячейка 2: Год (центр)
+    p = cells[1].paragraphs[0]
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.space_after = Pt(0)
+    
+    run = p.add_run(data['year'])
+    run.font.name = FONT_NAME
+    run.font.size = Pt(12)
+    run.font.underline = True
+    
+    run = p.add_run(' г.')
+    run.font.name = FONT_NAME
+    run.font.size = Pt(12)
+    
+    # Ячейка 3: Номер (справа)
+    p = cells[2].paragraphs[0]
+    p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+    p.paragraph_format.space_after = Pt(0)
+    
+    run = p.add_run('№ ')
+    run.font.name = FONT_NAME
+    run.font.size = Pt(12)
+    
+    run = p.add_run(data['orderNumber'])
+    run.font.name = FONT_NAME
+    run.font.size = Pt(12)
+    run.font.underline = True
+    
+    # Пропуск строки после даты и номера
     para = doc.add_paragraph()
     para.paragraph_format.space_after = Pt(0)
-    
-    # День и месяц (слева)
-    run = para.add_run('«')
-    run.font.name = FONT_NAME
-    run.font.size = Pt(12)
-    
-    run = para.add_run(data['day'])
-    run.font.name = FONT_NAME
-    run.font.size = Pt(12)
-    run.font.underline = True
-    
-    run = para.add_run('» ')
-    run.font.name = FONT_NAME
-    run.font.size = Pt(12)
-    
-    run = para.add_run(data['month'])
-    run.font.name = FONT_NAME
-    run.font.size = Pt(12)
-    run.font.underline = True
-    
-    # Год (с табуляцией для центрирования)
-    run = para.add_run('\t\t')
-    
-    run = para.add_run(data['year'])
-    run.font.name = FONT_NAME
-    run.font.size = Pt(12)
-    run.font.underline = True
-    
-    run = para.add_run(' г.')
-    run.font.name = FONT_NAME
-    run.font.size = Pt(12)
-    
-    # Номер (справа)
-    run = para.add_run('\t\t')
-    
-    run = para.add_run('№ ')
-    run.font.name = FONT_NAME
-    run.font.size = Pt(12)
-    
-    run = para.add_run(data['orderNumber'])
-    run.font.name = FONT_NAME
-    run.font.size = Pt(12)
-    run.font.underline = True
     
     # === г. Мытищи ===
     para = doc.add_paragraph()
@@ -231,37 +311,39 @@ def create_prikaz_document(data):
     
     para = doc.add_paragraph()
     para.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
-    para.paragraph_format.space_after = Pt(0)
+    para.paragraph_format.space_after = Pt(12)
     run = para.add_run(f'{last_punkt_num}. Контроль исполнения настоящего приказа оставляю за собой.')
     run.font.name = FONT_NAME
     run.font.size = Pt(12)
     
-    para = doc.add_paragraph()
-    para.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
-    para.paragraph_format.space_after = Pt(12)
-    run = para.add_run(f'{last_punkt_num + 1}. Приказ вступает в силу с момента его подписания.')
-    run.font.name = FONT_NAME
-    run.font.size = Pt(12)
-    
-    # === 5 ПУСТЫХ СТРОК ===
-    for _ in range(5):
+    # === 3 ПУСТЫЕ СТРОКИ (вместо 5) ===
+    for _ in range(3):
         doc.add_paragraph()
     
-    # === ПОДПИСЬ ГД (упрощенная версия) ===
-    para = doc.add_paragraph()
-    run = para.add_run('Генеральный директор')
+    # === ПОДПИСЬ ГД (через таблицу) ===
+    table_sign = create_table_without_borders(doc, 1, 3)
+    
+    table_sign.columns[0].width = Cm(6.0)
+    table_sign.columns[1].width = Cm(5.0)
+    table_sign.columns[2].width = Cm(6.0)
+    
+    cells = table_sign.rows[0].cells
+    
+    p = cells[0].paragraphs[0]
+    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    run = p.add_run('Генеральный директор')
     run.font.name = FONT_NAME
     run.font.size = Pt(12)
     
-    run = para.add_run('\t\t')
-    
-    run = para.add_run('__________________')
+    p = cells[1].paragraphs[0]
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    run = p.add_run('__________________')
     run.font.name = FONT_NAME
     run.font.size = Pt(12)
     
-    run = para.add_run('\t')
-    
-    run = para.add_run('А.\u00A0А.\u00A0Зазыгин')
+    p = cells[2].paragraphs[0]
+    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    run = p.add_run('А.\u00A0А.\u00A0Зазыгин')
     run.font.name = FONT_NAME
     run.font.size = Pt(12)
     
@@ -276,48 +358,68 @@ def create_prikaz_document(data):
         run.font.name = FONT_NAME
         run.font.size = Pt(12)
         
-        doc.add_paragraph()
-        doc.add_paragraph()
+        doc.add_paragraph()  # Только одна пустая строка
         
-        # Для каждого ФИО
+        # Для каждого ФИО - таблица
         for fio in data['fios']:
-            para = doc.add_paragraph()
+            table_fio = create_table_without_borders(doc, 1, 2)
             
-            run = para.add_run(fio)
+            table_fio.columns[0].width = Cm(2.5)
+            table_fio.columns[1].width = Cm(14.5)
+            
+            cells = table_fio.rows[0].cells
+            
+            # Ячейка 1: ФИО
+            p = cells[0].paragraphs[0]
+            p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+            run = p.add_run(fio)
             run.font.name = FONT_NAME
             run.font.size = Pt(12)
             
-            run = para.add_run('\u00A0' * 30)
+            # Ячейка 2: Линия и дата
+            p = cells[1].paragraphs[0]
+            p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+            
+            run = p.add_run('\u00A0' * 30)
             run.font.name = FONT_NAME
             run.font.size = Pt(12)
             
-            run = para.add_run('_________________________________')
+            run = p.add_run('_________________________________')
             run.font.name = FONT_NAME
             run.font.size = Pt(12)
             
-            run = para.add_run('\u00A0')
+            run = p.add_run('\u00A0')
             run.font.name = FONT_NAME
             run.font.size = Pt(12)
             
-            run = para.add_run('«__»_______20__г.')
+            run = p.add_run('«__»_______20__г.')
             run.font.name = FONT_NAME
             run.font.size = Pt(12)
         
-        doc.add_paragraph()
-        doc.add_paragraph()
+        doc.add_paragraph()  # Только одна пустая строка
         
-        # Строка "Подпись"
-        para = doc.add_paragraph()
+        # Строка "Подпись" - таблица
+        table_podpis = create_table_without_borders(doc, 1, 2)
         
-        run = para.add_run('Подпись')
+        table_podpis.columns[0].width = Cm(2.5)
+        table_podpis.columns[1].width = Cm(14.5)
+        
+        cells = table_podpis.rows[0].cells
+        
+        p = cells[0].paragraphs[0]
+        p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+        run = p.add_run('Подпись')
         run.font.name = FONT_NAME
         run.font.size = Pt(12)
         
-        run = para.add_run('\u00A0' * 30)
+        p = cells[1].paragraphs[0]
+        p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+        
+        run = p.add_run('\u00A0' * 30)
         run.font.name = FONT_NAME
         run.font.size = Pt(12)
         
-        run = para.add_run('_________________________________________')
+        run = p.add_run('_________________________________________')
         run.font.name = FONT_NAME
         run.font.size = Pt(12)
     
