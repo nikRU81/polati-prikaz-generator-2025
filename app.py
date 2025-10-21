@@ -224,7 +224,7 @@ def create_prikaz_document(data):
     for punkt in data['punkts']:
         para = doc.add_paragraph()
         para.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
-        para.paragraph_format.space_after = Pt(0)
+        para.paragraph_format.space_after = Pt(6)  # Интервал после 6 пт
         run = para.add_run(f"{punkt['number']}. {punkt['text']}")
         run.font.name = FONT_NAME
         run.font.size = Pt(12)
@@ -234,16 +234,18 @@ def create_prikaz_document(data):
     
     para = doc.add_paragraph()
     para.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
-    para.paragraph_format.space_after = Pt(12)
+    para.paragraph_format.space_after = Pt(6)  # Интервал после 6 пт
     run = para.add_run(f'{last_punkt_num}. Контроль исполнения настоящего приказа оставляю за собой.')
     run.font.name = FONT_NAME
     run.font.size = Pt(12)
     
-    # === 3 ПУСТЫЕ СТРОКИ (вместо 5) ===
+    # === 3 ПУСТЫЕ СТРОКИ С ОДИНАРНЫМ ИНТЕРВАЛОМ ===
     for _ in range(3):
-        doc.add_paragraph()
+        p = doc.add_paragraph()
+        p.paragraph_format.line_spacing = 1.0
+        p.paragraph_format.space_after = Pt(0)
     
-    # === ПОДПИСЬ ГД (через таблицу) ===
+    # === ПОДПИСЬ ГД (через таблицу, БЕЗ линии, с пробелами) ===
     table_sign = create_table_without_borders(doc, 1, 3)
     
     table_sign.columns[0].width = Cm(6.0)
@@ -252,20 +254,21 @@ def create_prikaz_document(data):
     
     cells = table_sign.rows[0].cells
     
+    # Колонка 1: Генеральный директор
     p = cells[0].paragraphs[0]
     p.alignment = WD_ALIGN_PARAGRAPH.LEFT
     run = p.add_run('Генеральный директор')
     run.font.name = FONT_NAME
     run.font.size = Pt(12)
     
+    # Колонка 2: Пустая (для пробела между текстами)
     p = cells[1].paragraphs[0]
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    run = p.add_run('__________________')
-    run.font.name = FONT_NAME
-    run.font.size = Pt(12)
+    # Пустая колонка для отступа
     
+    # Колонка 3: ФИО
     p = cells[2].paragraphs[0]
-    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
     run = p.add_run('А.\u00A0А.\u00A0Зазыгин')
     run.font.name = FONT_NAME
     run.font.size = Pt(12)
@@ -283,22 +286,24 @@ def create_prikaz_document(data):
     
     doc.add_paragraph()  # Только одна пустая строка
     
-    # Строка с ФИО
+    # Строка с ФИО - таблица с фиксированными отступами
     table_fio = create_table_without_borders(doc, 1, 2)
     
-    table_fio.columns[0].width = Cm(2.5)
-    table_fio.columns[1].width = Cm(14.5)
+    # Колонка 1: для "ФИО" - узкая
+    # Колонка 2: для линии и даты - широкая
+    table_fio.columns[0].width = Cm(3.0)
+    table_fio.columns[1].width = Cm(14.0)
     
     cells = table_fio.rows[0].cells
     
-    # Ячейка 1: ФИО (всегда)
+    # Ячейка 1: ФИО
     p = cells[0].paragraphs[0]
     p.alignment = WD_ALIGN_PARAGRAPH.LEFT
     run = p.add_run('ФИО')
     run.font.name = FONT_NAME
     run.font.size = Pt(12)
     
-    # Ячейка 2: Линия и дата (выравнивание по левому краю)
+    # Ячейка 2: Линия и дата
     p = cells[1].paragraphs[0]
     p.alignment = WD_ALIGN_PARAGRAPH.LEFT
     
@@ -316,11 +321,12 @@ def create_prikaz_document(data):
     
     doc.add_paragraph()  # Только одна пустая строка
     
-    # Строка "Подпись"
+    # Строка "Подпись" - таблица с теми же размерами колонок
     table_podpis = create_table_without_borders(doc, 1, 2)
     
-    table_podpis.columns[0].width = Cm(2.5)
-    table_podpis.columns[1].width = Cm(14.5)
+    # Те же размеры колонок для выравнивания линий
+    table_podpis.columns[0].width = Cm(3.0)
+    table_podpis.columns[1].width = Cm(14.0)
     
     cells = table_podpis.rows[0].cells
     
