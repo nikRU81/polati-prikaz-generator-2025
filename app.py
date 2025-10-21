@@ -72,6 +72,12 @@ def create_table_without_borders(doc, rows, cols):
     
     return table
 
+def add_paragraph_single_spacing(doc):
+    """Создание параграфа с одинарным межстрочным интервалом"""
+    para = doc.add_paragraph()
+    para.paragraph_format.line_spacing = 1.0
+    return para
+
 def create_prikaz_document(data):
     """Создание документа приказа согласно стандарту ПОЛАТИ 2025"""
     
@@ -107,10 +113,10 @@ def create_prikaz_document(data):
             pass
     
     # === ПРОПУСК СТРОКИ ПЕРЕД "ПРИКАЗ" ===
-    doc.add_paragraph()
+    para = add_paragraph_single_spacing(doc)
     
     # === ЗАГОЛОВОК "ПРИКАЗ" ===
-    para = doc.add_paragraph()
+    para = add_paragraph_single_spacing(doc)
     para.alignment = WD_ALIGN_PARAGRAPH.LEFT
     para.paragraph_format.space_before = Pt(12)
     para.paragraph_format.space_after = Pt(12)  # Пропуск строки после ПРИКАЗ
@@ -181,11 +187,11 @@ def create_prikaz_document(data):
     run.font.underline = True
     
     # Пропуск строки после даты и номера
-    para = doc.add_paragraph()
+    para = add_paragraph_single_spacing(doc)
     para.paragraph_format.space_after = Pt(0)
     
     # === г. Мытищи ===
-    para = doc.add_paragraph()
+    para = add_paragraph_single_spacing(doc)
     para.alignment = WD_ALIGN_PARAGRAPH.LEFT
     para.paragraph_format.space_before = Pt(0)
     para.paragraph_format.space_after = Pt(12)
@@ -194,7 +200,7 @@ def create_prikaz_document(data):
     run.font.size = Pt(12)
     
     # === НАЗВАНИЕ ПРИКАЗА ===
-    para = doc.add_paragraph()
+    para = add_paragraph_single_spacing(doc)
     para.alignment = WD_ALIGN_PARAGRAPH.LEFT
     para.paragraph_format.space_after = Pt(12)
     run = para.add_run(data['orderTitle'])
@@ -203,7 +209,7 @@ def create_prikaz_document(data):
     run.font.bold = True
     
     # === ПРЕАМБУЛА ===
-    para = doc.add_paragraph()
+    para = add_paragraph_single_spacing(doc)
     para.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
     para.paragraph_format.first_line_indent = Cm(1.25)
     para.paragraph_format.space_after = Pt(12)
@@ -212,7 +218,7 @@ def create_prikaz_document(data):
     run.font.size = Pt(12)
     
     # === ПРИКАЗЫВАЮ ===
-    para = doc.add_paragraph()
+    para = add_paragraph_single_spacing(doc)
     para.alignment = WD_ALIGN_PARAGRAPH.LEFT
     para.paragraph_format.space_after = Pt(12)
     run = para.add_run('ПРИКАЗЫВАЮ:')
@@ -222,7 +228,7 @@ def create_prikaz_document(data):
     
     # === ПУНКТЫ ПРИКАЗА ===
     for punkt in data['punkts']:
-        para = doc.add_paragraph()
+        para = add_paragraph_single_spacing(doc)
         para.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
         para.paragraph_format.space_after = Pt(6)  # Интервал после 6 пт
         run = para.add_run(f"{punkt['number']}. {punkt['text']}")
@@ -232,7 +238,7 @@ def create_prikaz_document(data):
     # === ФИНАЛЬНЫЕ ПУНКТЫ ===
     last_punkt_num = len(data['punkts']) + 1
     
-    para = doc.add_paragraph()
+    para = add_paragraph_single_spacing(doc)
     para.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
     para.paragraph_format.space_after = Pt(6)  # Интервал после 6 пт
     run = para.add_run(f'{last_punkt_num}. Контроль исполнения настоящего приказа оставляю за собой.')
@@ -275,24 +281,23 @@ def create_prikaz_document(data):
     
     # === БЛОК ОЗНАКОМЛЕНИЯ ===
     # Блок всегда добавляется с текстом "ФИО"
-    doc.add_paragraph()
-    doc.add_paragraph()
+    para = add_paragraph_single_spacing(doc)
+    para = add_paragraph_single_spacing(doc)
     
-    para = doc.add_paragraph()
+    para = add_paragraph_single_spacing(doc)
     para.alignment = WD_ALIGN_PARAGRAPH.LEFT
     run = para.add_run('С приказом ознакомлен(-ы):')
     run.font.name = FONT_NAME
     run.font.size = Pt(12)
     
-    doc.add_paragraph()  # Только одна пустая строка
+    para = add_paragraph_single_spacing(doc)  # Только одна пустая строка
     
-    # Строка с ФИО - таблица с фиксированными отступами
+    # Строка с ФИО - таблица с одинаковыми размерами
     table_fio = create_table_without_borders(doc, 1, 2)
     
-    # Колонка 1: для "ФИО" - узкая
-    # Колонка 2: для линии и даты - широкая
-    table_fio.columns[0].width = Cm(3.0)
-    table_fio.columns[1].width = Cm(14.0)
+    # Одинаковые размеры для обеих строк
+    table_fio.columns[0].width = Cm(2.5)
+    table_fio.columns[1].width = Cm(14.5)
     
     cells = table_fio.rows[0].cells
     
@@ -307,7 +312,7 @@ def create_prikaz_document(data):
     p = cells[1].paragraphs[0]
     p.alignment = WD_ALIGN_PARAGRAPH.LEFT
     
-    run = p.add_run('_________________________________')
+    run = p.add_run('_________________________________________')
     run.font.name = FONT_NAME
     run.font.size = Pt(12)
     
@@ -319,14 +324,14 @@ def create_prikaz_document(data):
     run.font.name = FONT_NAME
     run.font.size = Pt(12)
     
-    doc.add_paragraph()  # Только одна пустая строка
+    para = add_paragraph_single_spacing(doc)  # Только одна пустая строка
     
-    # Строка "Подпись" - таблица с теми же размерами колонок
+    # Строка "Подпись" - таблица с ТОЧНО ТАКИМИ ЖЕ размерами
     table_podpis = create_table_without_borders(doc, 1, 2)
     
-    # Те же размеры колонок для выравнивания линий
-    table_podpis.columns[0].width = Cm(3.0)
-    table_podpis.columns[1].width = Cm(14.0)
+    # ВАЖНО: Абсолютно те же размеры колонок!
+    table_podpis.columns[0].width = Cm(2.5)
+    table_podpis.columns[1].width = Cm(14.5)
     
     cells = table_podpis.rows[0].cells
     
